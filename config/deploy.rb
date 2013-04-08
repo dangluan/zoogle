@@ -1,6 +1,12 @@
 require 'bundler/capistrano'
 require 'capistrano/ext/multistage'
 
+# rbenv
+# rubifyvn is the user used to deploy
+set :default_environment, {
+  "PATH" => "/home/rubifyvn/.rbenv/shims:/home/rubifyvn/.rbenv/bin:$PATH"
+}
+
 default_run_options[:pty] = true
 set :keep_releases, 5
 set :application, "Zoogle"
@@ -12,7 +18,6 @@ set :stages, ["staging", "production"]
 set :default_stage, "staging"
 set :use_sudo,	false
 set :deploy_via, :remote_cache
-set :rake,  "bundle exec rake"
 # if you're still using the script/reaper helper you will need
 # these http://github.com/rails/irs_process_scripts
 
@@ -20,7 +25,7 @@ load 'deploy/assets'
 
 after 'deploy:finalize_update', 'deploy:symlink_share', 'deploy:migrate_database'
 after "deploy:update", "deploy:cleanup"
-after  "deploy:restart", "delayed_job:restart"
+# after  "deploy:restart", "delayed_job:restart"
 
 def remote_file_exists?(full_path)
   'true' ==  capture("if [ -e #{full_path} ]; then echo 'true'; fi").strip
@@ -31,6 +36,8 @@ namespace :deploy do
   task :restart, :roles => :web do
     if remote_file_exists?("#{shared_path}/pids/zoogle.pid")
       run "kill -s USR2 `cat #{shared_path}/pids/zoogle.pid`"
+    else
+      run "cd #{current_path} ; bundle exec unicorn -c config/unicorn.rb -D -E #{rails_env}"
     end
     # run "cd #{current_path} ; bundle exec unicorn -c config/unicorn.rb -D -E #{rails_env}"
   end
@@ -81,8 +88,6 @@ namespace :deploy do
     desc "Present a maintenance page to visitors."
     task :disable, :roles => :web, :except => { :no_release => true } do
       require 'erb'
-      on_rollback { run "rm #{shared_path}/system/maintenance.html" }
-
       reason = ENV['REASON']
       deadline = ENV['UNTIL']
 
@@ -99,7 +104,7 @@ namespace :deploy do
   end
 end
 
-# 
+
 # namespace :delayed_job do
 #   desc "Start delayed_job process"
 #   task :start do
