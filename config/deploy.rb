@@ -1,6 +1,5 @@
 require 'bundler/capistrano'
 require 'capistrano/ext/multistage'
-
 # rbenv
 # rubifyvn is the user used to deploy
 set :default_environment, {
@@ -9,7 +8,7 @@ set :default_environment, {
 
 default_run_options[:pty] = true
 set :keep_releases, 5
-set :application, "Zoogle"
+set :application, "zoogle"
 set :repository,  "git@github.com:dangluan/zoogle.git"
 set :scm, :git
 set :branch, :master
