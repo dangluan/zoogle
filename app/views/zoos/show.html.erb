@@ -1,0 +1,10 @@
+<p id="notice"><%= notice %></p>
+<%= show_gallery_images @zoo%>
+<p>
+  <b>Name:</b>
+  <%= @zoo.name %>
+</p>
+
+
+<%= link_to 'Edit', edit_zoo_path(@zoo) %> |
+<%= link_to 'Back', zoos_path %>
